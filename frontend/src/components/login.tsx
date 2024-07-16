@@ -8,22 +8,18 @@ export default function LoginPage() {
  
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
- 
     const formData = new FormData(event.currentTarget)
     const email = formData.get('email')
     const password = formData.get('password')
- 
     const response = await fetch('http://127.0.0.1:5000/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     })
- 
+
     if (response.ok) {
-        alert("hi")
-        router.push('/profile')
     } else {
-      // Handle errors
+        alert("Error: " + response.statusText);
     }
   }
  
