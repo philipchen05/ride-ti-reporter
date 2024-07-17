@@ -3,12 +3,12 @@
 import { useState } from 'react'
 import { FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { useDispatch } from 'react-redux'
+import { useAppDispatch } from './store'
 import { setAuthenticated } from './store'
 
 export default function LoginPage() {
     const [state, setState] = useState(2)
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch()
     const router = useRouter()
  
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -44,11 +44,12 @@ export default function LoginPage() {
  
   return (
     <div>
-        <form onSubmit={handleSubmit} style={{ color: 'black' }} className="flex flex-col bg-green-100 p-4 rounded-lg h-36 w-56 justify-center">
+        <form onSubmit={handleSubmit} style={{ color: 'black' }} className="flex flex-col bg-green-100 p-4 rounded-lg h-42 w-56 justify-center">
+            <h1 className="text-center font-bold mb-2 text-xl">RIDE-TI</h1>
             <input type="username" name="username" placeholder="Username" required className="mb-4 rounded-md px-1"/>
             <input type="password" name="password" placeholder="Password" required className="mb-4 rounded-md px-1"/>
             <div className="flex justify-center">
-                <button type="submit" className="bg-white w-3/6 rounded-md">Login</button>
+                <button type="submit" className="hover:bg-green-400 text-white bg-green-300 w-3/6 rounded-md">Login</button>
             </div>
         </form>
         {renderBox(state)}
