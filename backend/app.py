@@ -3,9 +3,26 @@ from flask_cors import CORS
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
+import firebase_admin
+from firebase_admin import credentials, db
+import json
+import urllib.parse
 
 app = Flask(__name__)
 CORS(app)
+
+#cred = firebase_admin.credentials.Certificate('./key.json')
+#default_app = firebase_admin.initialize_app(cred, {
+#    'databaseURL': 'firebaseURL'
+#})
+
+def encode(key):
+    key = key.replace('.', '%2E')
+    return urllib.parse.quote(key, safe='')
+
+def decode(key):
+    key = urllib.parse.unquote(key)
+    return key.replace('%2E', '.')
 
 @app.route('/')
 def home():
@@ -33,6 +50,22 @@ def login():
     except:
         return jsonify({"message": "Login successful"})
     abort(401)
+
+@app.route('/prod', methods = ['POST'])
+def prod():
+    print('prod')
+
+    
+    #try:
+    #    url = "owners/"
+    #    ref = db.reference(url)
+    #    best_sellers = ref.get()
+    #    print(best_sellers)
+    #except Exception as e:
+    #    print(f"Exception occurred: {e}")
+
+
+    return jsonify({"message": "PROD"})
 
 if __name__ == '__main__':
     app.run(debug=True)
