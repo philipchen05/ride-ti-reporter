@@ -5,11 +5,11 @@ import { useEffect } from 'react';
 import { useAppSelector } from '../../components/store';
 
 export default function Home() {
-    const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+    const { isAuthenticated, user, pswrd } = useAppSelector(state => state.auth);
     const router = useRouter();
-    const date = new Date();
-
-    if(isAuthenticated) {
+    const date = new Date()
+    
+    if(true) {
         return (
             <main className="bg-white flex min-h-screen flex-col items-center justify-center p-24">
                 <div className="flex flex-col bg-green-100 p-4 rounded-lg h-42 w-56 justify-center">
