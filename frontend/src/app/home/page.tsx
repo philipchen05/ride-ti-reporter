@@ -7,12 +7,14 @@ export default function Home() {
     const { isAuthenticated, user, pswrd } = useAppSelector(state => state.auth);
     const router = useRouter();
     const date = new Date()
+    const username = user
+    const password = pswrd
     
     async function handleProd(event: React.MouseEvent<HTMLButtonElement>) {
         const response = await fetch('http://127.0.0.1:5000/prod', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ "username": user, "password": pswrd }),
+            body: JSON.stringify({ username, password }),
         })
 
         if (response.ok) {
@@ -22,7 +24,7 @@ export default function Home() {
         }
     }
 
-    if(true) {
+    if(isAuthenticated) {
         return (
             <main className="bg-white flex min-h-screen flex-col items-center justify-center p-24">
                 <div className="flex flex-col bg-green-100 p-4 rounded-lg h-42 w-56 justify-center">
