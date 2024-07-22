@@ -10,6 +10,14 @@ export default function Home() {
     const username = user
     const password = pswrd
     
+    function getFormattedDate(): string {
+        const date = new Date();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        const year = date.getFullYear().toString();
+        return `${month} ${day} ${year}`;
+    }
+
     async function handleProd(event: React.MouseEvent<HTMLButtonElement>) {
         const response = await fetch('http://127.0.0.1:5000/prod', {
             method: 'POST',
@@ -18,9 +26,29 @@ export default function Home() {
         })
 
         if (response.ok) {
-            alert("ok")
+            try {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+
+                const outputFile = getFormattedDate() + " - Defect RT Status Report.xlsx"
+
+                link.setAttribute("download", outputFile);
+    
+                // Append temporary link to document body
+                document.body.appendChild(link);
+                link.click();
+    
+                // Cleanup: remove temporary link
+                if (link.parentNode) {
+                    link.parentNode.removeChild(link);
+                }
+            } catch (error) {
+                console.error("Download error:", error);
+            }
         } else {
-            alert("not ok")
+            console.error("Network error");
         }
     }
 

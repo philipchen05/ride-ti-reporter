@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, abort
+from flask import Flask, request, jsonify, abort, after_this_request, send_file
 from flask_cors import CORS
 import firebase_admin
 from firebase_admin import db
@@ -14,7 +14,6 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
-import shutil
 import time
 import warnings
 from pathlib import Path
@@ -34,14 +33,6 @@ def encode(key):
 def decode(key):
     key = urllib.parse.unquote(key)
     return key.replace('%2E', '.')
-
-def getdownloads():
-    home = Path.home()
-    if os.name == 'nt':
-        downloads = home / 'Downloads'
-    else:
-        downloads = home / 'Downloads'
-    return downloads
 
 @app.route('/')
 def home():
@@ -93,7 +84,8 @@ def prod():
 
     today = date.today().strftime('%m %d %Y')
     day = date.today().strftime('%-d')
-    
+    root = os.getcwd()
+
     # Create temporary directory
     temp = tempfile.TemporaryDirectory()
 
@@ -660,14 +652,15 @@ def prod():
     os.remove("pivot_table.xlsx")
     os.remove("combined_tables.xlsx")
     os.remove("Results.xlsx")
-    
-    # Download locally
-    downloads = getdownloads()
-    shutil.move(os.getcwd() + '/' + output_file, downloads)
 
     # Clean up the temporary directory
-    temp.cleanup()
-    return jsonify({"message": "Download successful"})
+    @after_this_request
+    def clean(response):
+        temp.cleanup()
+        os.chdir(root)
+        return response
+    
+    return send_file(os.getcwd() + '/' + output_file, as_attachment=True)
 
 if __name__ == '__main__':
     app.run(debug=True)
