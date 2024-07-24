@@ -98,7 +98,7 @@ def prod():
         "safebrowsing.enabled": True
     }
     options.add_experimental_option("prefs", prefs)
-    #options.add_argument('--headless=new')
+    options.add_argument('--headless=new')
 
     driver = webdriver.Chrome(options)
     driver.get("https://rt.ffximg.com")
@@ -166,8 +166,18 @@ def prod():
 
     new_defects = 0
     for i in range(len(df)):
-        df.at[i, 'CAC/MOF Requestor'] = reqs[df.at[i, 'Requestors']]
-        df.at[i, 'CAC/MOF/FFX Owner'] = owners[df.at[i, 'OwnerName']]
+        try:
+            df.at[i, 'CAC/MOF Requestor'] = reqs[df.at[i, 'Requestors']]
+        except Exception as e:
+            temp.cleanup()
+            os.chdir(root)
+            return jsonify({'error': 'Requestor', 'message': str(e)}), 500
+        try:
+            df.at[i, 'CAC/MOF/FFX Owner'] = owners[df.at[i, 'OwnerName']]
+        except Exception as e:
+            temp.cleanup()
+            os.chdir(root)
+            return jsonify({'error': 'Owner', 'message': str(e)}), 500
         df.at[i, 'Ministry/FFX Owner'] = 'FFX' if df.at[i, 'CAC/MOF/FFX Owner'] == 'FFX' else 'Ministry'
 
     # count new defects for the day
@@ -661,6 +671,28 @@ def prod():
         return response
     
     return send_file(os.getcwd() + '/' + output_file, as_attachment=True)
+
+@app.route('/addowner', methods=['POST'])
+def add_owner():
+    data = request.get_json()
+    missing_key = encode(data.get('missingkey')[1:-1])
+    value = data.get('value')
+
+    ref = db.reference(f'/owners/{missing_key}')
+    ref.set(value)
+
+    return jsonify({"message": "Owner added successfully"})
+
+@app.route('/addrequestor', methods=['POST'])
+def add_requestor():
+    data = request.get_json()
+    missing_key = encode(data.get('missingkey')[1:-1])
+    value = data.get('value')
+    
+    ref = db.reference(f'/requestors/{missing_key}')
+    ref.set(value)
+
+    return jsonify({"message": "Owner added successfully"})
 
 if __name__ == '__main__':
     app.run(debug=True)
