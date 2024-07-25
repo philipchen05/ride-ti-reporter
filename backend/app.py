@@ -16,14 +16,16 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 import time
 import warnings
-from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-cred = firebase_admin.credentials.Certificate('./key.json')
+cred = firebase_admin.credentials.Certificate(os.getenv("CREDENTIALS"))
 default_app = firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://ride-ti-reporter-default-rtdb.firebaseio.com'
+    'databaseURL': os.getenv("URL")
 })
 
 def encode(key):
