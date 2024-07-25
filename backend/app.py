@@ -692,7 +692,7 @@ def add_requestor():
     ref = db.reference(f'/requestors/{missing_key}')
     ref.set(value)
 
-    return jsonify({"message": "Owner added successfully"})
+    return jsonify({"message": "Requestor added successfully"})
 
 if __name__ == '__main__':
     app.run(debug=True)
