@@ -1,6 +1,5 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { useAppSelector } from './store';
 import { useState } from 'react'
 import AddName from './addname'
@@ -8,6 +7,7 @@ import AddName from './addname'
 export default function Home() {
     const { user, pswrd } = useAppSelector(state => state.auth);
     const [state, setState] = useState(0)
+    const [prod, setProd] = useState(true) // For preventing multiple downloads at once
     const date = new Date()
     const username = user
     const password = pswrd
@@ -23,6 +23,7 @@ export default function Home() {
     }
 
     async function handleProd() {
+        setProd(false)
         setState(1)
         const response = await fetch('http://127.0.0.1:5000/prod', {
             method: 'POST',
@@ -59,6 +60,7 @@ export default function Home() {
             setErrorKey(errorData.message)
             setState(3)
         }
+        setProd(true)
     }
     
     function renderBox(state: number) {
@@ -84,7 +86,7 @@ export default function Home() {
                 <h1 className="text-black text-center font-bold text-xl">Reports</h1>
                 <h1 className="text-black text-center mb-3 text-sm">{date.toDateString()}</h1>
                 <div className="flex flex-row justify-evenly">
-                    <button onClick={handleProd} type="submit" className="hover:bg-green-400 text-white bg-green-300 w-2/6 rounded-md">PROD</button>
+                    <button onClick={() => { if(prod){ handleProd() }}} type="submit" className="hover:bg-green-400 text-white bg-green-300 w-2/6 rounded-md">PROD</button>
                     <button onClick={() => alert("Coming Soon")} type="submit" className="hover:bg-green-400 text-white bg-green-300 w-2/6 rounded-md">UAT</button>
                 </div>
             </div>
