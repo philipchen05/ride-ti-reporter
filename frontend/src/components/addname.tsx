@@ -20,7 +20,7 @@ export default function AddName(props: Props) {
     async function handleSubmit() {
         const missingkey = props.missingKey
         const value = selection
-        var endpoint = 'http://127.0.0.1:5000/add'
+        var endpoint = 'https://ride-ti-reporter-backend-r2tsfeja2q-nn.a.run.app/add'
         if(props.type == 'Owner') {
             endpoint += 'owner'
         } else {
