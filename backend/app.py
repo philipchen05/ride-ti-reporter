@@ -16,6 +16,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 import time
 import warnings
+import json
 #from dotenv import load_dotenv
 
 #load_dotenv()
@@ -23,7 +24,7 @@ import warnings
 app = Flask(__name__)
 CORS(app)
 
-cred = firebase_admin.credentials.Certificate(os.getenv("CREDENTIALS"))
+cred = firebase_admin.credentials.Certificate(json.loads(os.getenv("CREDENTIALS")))
 default_app = firebase_admin.initialize_app(cred, {
     'databaseURL': os.getenv("URL")
 })
