@@ -14,11 +14,12 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 import time
 import warnings
 import json
 #from dotenv import load_dotenv
-import hi
 
 #load_dotenv()
 
@@ -49,11 +50,12 @@ def login():
     password = data.get('password')
 
     options = Options()
-    options.add_argument('--headless')
     options.add_argument('--no-sandbox')
-    options.add_argument('--disable-gpu')
+    options.add_argument('--headless')
     options.add_argument('--disable-dev-shm-usage')
-    driver = webdriver.Chrome(options)
+    options.add_argument('--disable-gpu')
+
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     driver.get("https://rt.ffximg.com")
     driver.implicitly_wait(0.5)
     user = driver.find_element(By.ID, "user")
@@ -105,9 +107,12 @@ def prod():
         "safebrowsing.enabled": True
     }
     options.add_experimental_option("prefs", prefs)
-    options.add_argument('--headless=new')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--headless')
+    options.add_argument('--disable-dev-shm-usage')
+    options.add_argument('--disable-gpu')
 
-    driver = webdriver.Chrome(options)
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     driver.get("https://rt.ffximg.com")
     driver.implicitly_wait(0.5)
     user = driver.find_element(By.ID, "user")
