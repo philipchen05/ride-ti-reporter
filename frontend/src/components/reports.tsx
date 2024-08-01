@@ -54,13 +54,13 @@ export default function Home() {
             } catch (error) {
                 console.error("Download error:", error);
             }
+            setProd(true)
         } else {
             const errorData = await response.json();
             setErrorType(errorData.error)
             setErrorKey(errorData.message)
             setState(3)
         }
-        setProd(true)
     }
     
     function renderBox(state: number) {
