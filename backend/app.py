@@ -72,11 +72,12 @@ def login():
     driver.quit()
     abort(401)
 
-@app.route('/prod', methods=['POST'])
+@app.route('/download', methods=['POST'])
 def prod():
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
+    report = data.get('report')
 
     # Ignore warnings
     warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
@@ -122,12 +123,19 @@ def prod():
     login = driver.find_element(By.CLASS_NAME, "btn")
     login.click()
 
-    prod = driver.find_element(By.LINK_TEXT, "Projects - Ontario - PROD")
+    if report == 'PROD':
+        prod = driver.find_element(By.LINK_TEXT, "Projects - Ontario - PROD")
+    else:
+        prod = driver.find_element(By.LINK_TEXT, "Projects - Ontario - UAT")
     prod.click()
     edit_search = driver.find_element(By.ID, "page-edit_search")
     edit_search.click()
     display_columns = driver.find_element(By.ID, "SelectDisplayColumns-selectized")
-    display_columns.send_keys("CustomField.{Ticket Severity}")
+    if report == 'PROD':
+        ticket_severity = "CustomField.{Ticket Severity}"
+    else:
+        ticket_severity = "CustomFieldView.{Ticket Severity}"
+    display_columns.send_keys(ticket_severity)
     display_columns.send_keys(Keys.ENTER)
     add_col = driver.find_element(By.XPATH, "//*[@id=\"TitleBox--_Search_Build_html--titlebox-outer-div_h-100----RGlzcGxheSBDb2x1bW5z--columns-0\"]/div/div/div[2]/div[3]/div/div/input")
     add_col.click()
@@ -171,7 +179,8 @@ def prod():
     os.chdir(temp.name)
 
     # Today RT list of defects
-    df = pd.read_excel('Results.xlsx').drop(columns=['QueueName', 'Priority', 'Defect #']).replace([np.nan, np.inf, -np.inf], '')
+    # Columns dropped: 'Customer', 'QueueName', 'Priority', 'Defect #', 'Told', 'Due'
+    df = pd.read_excel('Results.xlsx').drop(columns=['Customer', 'QueueName', 'Priority', 'Defect #', 'Told', 'Due']).replace([np.nan, np.inf, -np.inf], '')
     df['CAC/MOF Requestor'] = None
     df['Ministry/FFX Owner'] = None
     df['CAC/MOF/FFX Owner'] = None
@@ -179,7 +188,10 @@ def prod():
     new_defects = 0
     for i in range(len(df)):
         try:
-            df.at[i, 'CAC/MOF Requestor'] = reqs[df.at[i, 'Requestors']]
+            if df.at[i, 'Requestors'].find(',') == -1:
+                df.at[i, 'CAC/MOF Requestor'] = reqs[df.at[i, 'Requestors']]
+            else:
+                df.at[i, 'CAC/MOF Requestor'] = reqs[df.at[i, 'Requestors'][:df.at[i, 'Requestors'].find(',')]]
         except Exception as e:
             temp.cleanup()
             os.chdir(root)
@@ -212,7 +224,7 @@ def prod():
         total1.index = ['Grand Total']
         p1 = pd.concat([p1, total1]).rename_axis('Row Labels')
 
-        p2 = pd.pivot_table(df, values='#', index=['Status'], columns=['CustomField.{Ticket Severity}'], aggfunc='count', fill_value=0)
+        p2 = pd.pivot_table(df, values='#', index=['Status'], columns=[ticket_severity], aggfunc='count', fill_value=0)
         p2['Grand Total'] = p2[0:len(p2)].sum(axis=1)
         total2 = pd.DataFrame(p2.sum()).T
         total2.index = ['Grand Total']
@@ -224,31 +236,31 @@ def prod():
         total3.index = ['Grand Total']
         p3 = pd.concat([p3, total3]).rename_axis('Row Labels')
 
-        p4 = pd.pivot_table(df, values='#', index=['CAC/MOF/FFX Owner'], columns=['CustomField.{Ticket Severity}'], aggfunc='count', fill_value=0)
+        p4 = pd.pivot_table(df, values='#', index=['CAC/MOF/FFX Owner'], columns=[ticket_severity], aggfunc='count', fill_value=0)
         p4['Grand Total'] = p4[0:len(p4)].sum(axis=1)
         total4 = pd.DataFrame(p4.sum()).T
         total4.index = ['Grand Total']
         p4 = pd.concat([p4, total4]).rename_axis('Row Labels')
 
-        p5 = pd.pivot_table(df, values='#', index=['CustomField.{Ticket Severity}'], columns=['CAC/MOF Requestor'], aggfunc='count', fill_value=0)
+        p5 = pd.pivot_table(df, values='#', index=[ticket_severity], columns=['CAC/MOF Requestor'], aggfunc='count', fill_value=0)
         p5['Grand Total'] = p5[0:len(p5)].sum(axis=1)
         total5 = pd.DataFrame(p5.sum()).T
         total5.index = ['Grand Total']
         p5 = pd.concat([p5, total5]).rename_axis('Row Labels')
 
-        p6 = pd.pivot_table(df, values='#', index=['Ministry/FFX Owner'], columns=['CustomField.{Ticket Severity}'], aggfunc='count', fill_value=0)
+        p6 = pd.pivot_table(df, values='#', index=['Ministry/FFX Owner'], columns=[ticket_severity], aggfunc='count', fill_value=0)
         p6['Grand Total'] = p6[0:len(p6)].sum(axis=1)
         total6 = pd.DataFrame(p6.sum()).T
         total6.index = ['Grand Total']
         p6 = pd.concat([p6, total6]).rename_axis('Ministry/FFX Owner')
 
-        p7 = pd.pivot_table(df, values='#', index=['CAC/MOF/FFX Owner'], columns=['CustomField.{Ticket Severity}'], aggfunc='count', fill_value=0)
+        p7 = pd.pivot_table(df, values='#', index=['CAC/MOF/FFX Owner'], columns=[ticket_severity], aggfunc='count', fill_value=0)
         p7['Grand Total'] = p7[0:len(p7)].sum(axis=1)
         total7 = pd.DataFrame(p7.sum()).T
         total7.index = ['Grand Total']
         p7 = pd.concat([p7, total2]).rename_axis('CAC/MOF/FFX Owner')
 
-        p8 = pd.pivot_table(df, values='#', index=['Status'], columns=['CustomField.{Ticket Severity}'], aggfunc='count', fill_value=0)
+        p8 = pd.pivot_table(df, values='#', index=['Status'], columns=[ticket_severity], aggfunc='count', fill_value=0)
         p8['Grand Total'] = p8[0:len(p8)].sum(axis=1)
         total8 = pd.DataFrame(p8.sum()).T
         total8.index = ['Grand Total']
@@ -279,11 +291,11 @@ def prod():
 
         p6.to_excel(writer, sheet_name='Pivot Table', startrow=40)
         worksheet.write('A40', 'Count of Ministry/FFX Owner')
-        worksheet.write('B40', 'CustomField.{Ticket Severity}')
+        worksheet.write('B40', ticket_severity)
 
         p7.to_excel(writer, sheet_name='Pivot Table', startrow=47)
         worksheet.write('A47', 'Count of CAC/MOF/FFX Owner')
-        worksheet.write('B47', 'CustomField.{Ticket Severity}')
+        worksheet.write('B47', ticket_severity)
 
         p8.to_excel(writer, sheet_name='Pivot Table', startrow=54)
         worksheet.write('A54', 'Count of Status')
