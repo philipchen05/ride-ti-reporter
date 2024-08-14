@@ -7,7 +7,7 @@ import AddName from './addname'
 export default function Home() {
     const { user, pswrd } = useAppSelector(state => state.auth);
     const [state, setState] = useState(0)
-    const [prod, setProd] = useState(true) // For preventing multiple downloads at once
+    const [report, setReport] = useState('')
     const date = new Date()
     const username = user
     const password = pswrd
@@ -22,13 +22,12 @@ export default function Home() {
         return `${month} ${day} ${year}`;
     }
 
-    async function handleProd() {
-        setProd(false)
+    async function handleDownload(report: string) {
         setState(1)
-        const response = await fetch('https://ride-ti-reporter-backend-r2tsfeja2q-nn.a.run.app/prod', {
+        const response = await fetch('https://ride-ti-reporter-backend-r2tsfeja2q-nn.a.run.app/download', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password }),
+            body: JSON.stringify({ username, password, report }),
         })
 
         if (response.ok) {
@@ -37,8 +36,13 @@ export default function Home() {
                 const url = window.URL.createObjectURL(blob);
                 const link = document.createElement("a");
                 link.href = url;
-
-                const outputFile = getFormattedDate() + " - Defect RT Status Report.xlsx"
+                
+                var outputFile = getFormattedDate() + " - "
+                if (report == 'PROD') {
+                    outputFile += "PROD Defect RT Status Report.xlsx"
+                } else {
+                    outputFile += "UAT Defect RT Status Report.xlsx"
+                }
 
                 link.setAttribute("download", outputFile);
     
@@ -54,7 +58,6 @@ export default function Home() {
             } catch (error) {
                 console.error("Download error:", error);
             }
-            setProd(true)
         } else {
             const errorData = await response.json();
             setErrorType(errorData.error)
@@ -74,7 +77,7 @@ export default function Home() {
             case 3:
                 return (<div>
                         <p className="mt-2 p-1.5 rounded-lg h-8 w-56"/>
-                        <AddName type={errorType} missingKey={errorKey} download={handleProd}/>
+                        <AddName type={errorType} missingKey={errorKey} download={handleDownload} report={report} />
                     </div>
                 )
         }  
@@ -86,8 +89,8 @@ export default function Home() {
                 <h1 className="text-black text-center font-bold text-xl">Reports</h1>
                 <h1 className="text-black text-center mb-3 text-sm">{date.toDateString()}</h1>
                 <div className="flex flex-row justify-evenly">
-                    <button onClick={() => { if(prod){ handleProd() }}} type="submit" className="hover:bg-green-400 text-white bg-green-300 w-2/6 rounded-md">PROD</button>
-                    <button onClick={() => alert("Coming Soon")} type="submit" className="hover:bg-green-400 text-white bg-green-300 w-2/6 rounded-md">UAT</button>
+                    <button onClick={() => { if(state != 1){ setReport('PROD'); handleDownload('PROD') }}} type="submit" className="hover:bg-green-400 text-white bg-green-300 w-2/6 rounded-md">PROD</button>
+                    <button onClick={() => { if(state != 1){ setReport('UAT'); handleDownload('UAT') }}} type="submit" className="hover:bg-green-400 text-white bg-green-300 w-2/6 rounded-md">UAT</button>
                 </div>
             </div>
             {renderBox(state)}

@@ -6,7 +6,8 @@ import { useState } from 'react'
 interface Props {
     type: string;
     missingKey: string;
-    download: () => Promise<void>;
+    download: (report: string) => Promise<void>;
+    report: string;
 }
 
 export default function AddName(props: Props) {
@@ -33,7 +34,7 @@ export default function AddName(props: Props) {
         })
 
         if (response.ok) {
-            props.download()
+            props.download(props.report)
         } else {
             console.log("Error")
         }
