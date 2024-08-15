@@ -68,7 +68,7 @@ export default function AddName(props: Props) {
                         </div>
                     </div>)}
                 </div>
-                <button onClick={handleSubmit} className="hover:bg-red-400 pl-3 text-white bg-red-300 text-center pr-3 rounded-md text-sm">Submit</button>
+                <button onClick={() => { if(selection != 'Select') handleSubmit() }} className="hover:bg-red-400 pl-3 text-white bg-red-300 text-center pr-3 rounded-md text-sm">Submit</button>
             </div>
         </div>
     )
