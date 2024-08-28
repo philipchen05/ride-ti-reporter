@@ -19,14 +19,14 @@ from webdriver_manager.chrome import ChromeDriverManager
 import time
 import warnings
 import json
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 
-load_dotenv()
+#load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-cred = firebase_admin.credentials.Certificate(os.getenv("CREDENTIALS"))
+cred = firebase_admin.credentials.Certificate(json.loads(os.getenv("CREDENTIALS")))
 default_app = firebase_admin.initialize_app(cred, {
     'databaseURL': os.getenv("URL")
 })
@@ -185,7 +185,13 @@ def prod():
     df['Ministry/FFX Owner'] = None
     df['CAC/MOF/FFX Owner'] = None
 
-    new_defects = 0
+    # Checking for blank ticket severities
+    for i in range(len(df[ticket_severity])):
+        if df[ticket_severity][i] == '':
+            temp.cleanup()
+            os.chdir(root)
+            return jsonify({'error': 'Blank Ticket Severity', 'message': str(df['#'][i])}), 500
+
     for i in range(len(df)):
         try:
             if df.at[i, 'Requestors'].find(',') == -1:
@@ -205,6 +211,7 @@ def prod():
         df.at[i, 'Ministry/FFX Owner'] = 'FFX' if df.at[i, 'CAC/MOF/FFX Owner'] == 'FFX' else 'Ministry'
 
     # count new defects for the day
+    new_defects = 0
     for i in reversed(range(len(df))):
         if df.at[i, 'Created'][9:9+len(day)] == day:
             new_defects += 1

@@ -3,6 +3,7 @@
 import { useAppSelector } from './store';
 import { useState } from 'react'
 import AddName from './addname'
+import Error from './error'
 
 export default function Home() {
     const { user, pswrd } = useAppSelector(state => state.auth);
@@ -24,7 +25,7 @@ export default function Home() {
 
     async function handleDownload(report: string) {
         setState(1)
-        const response = await fetch('https://ride-ti-reporter-backend-r2tsfeja2q-nn.a.run.app/download', {
+        const response = await fetch('http://127.0.0.1:5000/download', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password, report }),
@@ -62,7 +63,11 @@ export default function Home() {
             const errorData = await response.json();
             setErrorType(errorData.error)
             setErrorKey(errorData.message)
-            setState(3)
+            if(errorData.error == "Blank Ticket Severity") {
+                setState(4)
+            } else {
+                setState(3)
+            }
         }
     }
     
@@ -78,6 +83,12 @@ export default function Home() {
                 return (<div>
                         <p className="mt-2 p-1.5 rounded-lg h-8 w-56"/>
                         <AddName type={errorType} missingKey={errorKey} download={handleDownload} report={report} />
+                    </div>
+                )
+            case 4:
+                return (<div>
+                        <p className="mt-2 p-1.5 rounded-lg h-8 w-56"/>
+                        <Error type={errorType} missingKey={errorKey} />
                     </div>
                 )
         }  
