@@ -19,14 +19,14 @@ from webdriver_manager.chrome import ChromeDriverManager
 import time
 import warnings
 import json
-#from dotenv import load_dotenv
+from dotenv import load_dotenv
 
-#load_dotenv()
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-cred = firebase_admin.credentials.Certificate(json.loads(os.getenv("CREDENTIALS")))
+cred = firebase_admin.credentials.Certificate(os.getenv("CREDENTIALS"))
 default_app = firebase_admin.initialize_app(cred, {
     'databaseURL': os.getenv("URL")
 })
@@ -311,10 +311,22 @@ def prod():
     graphs2 = pd.read_excel('pivot_table.xlsx', sheet_name='Pivot Table', nrows=5, skiprows=1).replace([np.nan, np.inf, -np.inf], '')
     graphs2 = pd.concat([pd.concat([pd.concat([graphs2, empty_row], ignore_index=True), empty_row], ignore_index=True), empty_row], ignore_index=True).replace([np.nan, np.inf, -np.inf], '').map(lambda x: int(x) if isinstance(x, (int, float)) else x).rename(columns={'Row Labels': 'CAC/MOF Requestor'})
 
-    graphs3 = pd.read_excel('pivot_table.xlsx', sheet_name='Pivot Table', nrows=6, skiprows=8).replace([np.nan, np.inf, -np.inf], '')
+    # Finding index of "Grand Total" row to determine where to stop reading next table
+    index = 1
+    temp_graph = pd.read_excel('pivot_table.xlsx', sheet_name='Pivot Table', nrows=8, skiprows=8).replace([np.nan, np.inf, -np.inf], '')
+    while temp_graph.iloc[index - 1, 0] != 'Grand Total':
+        index += 1
+    
+    graphs3 = pd.read_excel('pivot_table.xlsx', sheet_name='Pivot Table', nrows=index, skiprows=8).replace([np.nan, np.inf, -np.inf], '')
     graphs3 = pd.concat([pd.concat([pd.concat([graphs3, empty_row], ignore_index=True), empty_row], ignore_index=True), empty_row], ignore_index=True).replace([np.nan, np.inf, -np.inf], '').map(lambda x: int(x) if isinstance(x, (int, float)) else x).rename(columns={'Row Labels': 'Status'})
 
-    graphs4 = pd.read_excel('pivot_table.xlsx', sheet_name='Pivot Table', nrows=6, skiprows=17).replace([np.nan, np.inf, -np.inf], '')
+    # Finding index of "Grand Total" row to determine where to stop reading next table
+    index = 1
+    temp_graph = pd.read_excel('pivot_table.xlsx', sheet_name='Pivot Table', nrows=8, skiprows=17).replace([np.nan, np.inf, -np.inf], '')
+    while temp_graph.iloc[index - 1, 0] != 'Grand Total':
+        index += 1
+
+    graphs4 = pd.read_excel('pivot_table.xlsx', sheet_name='Pivot Table', nrows=index, skiprows=17).replace([np.nan, np.inf, -np.inf], '')
     graphs4 = pd.concat([pd.concat([pd.concat([graphs4, empty_row], ignore_index=True), empty_row], ignore_index=True), empty_row], ignore_index=True).replace([np.nan, np.inf, -np.inf], '').map(lambda x: int(x) if isinstance(x, (int, float)) else x).rename(columns={'Row Labels': 'Row Labels'})
 
     graphs5 = pd.read_excel('pivot_table.xlsx', sheet_name='Pivot Table', nrows=5, skiprows=26).replace([np.nan, np.inf, -np.inf], '')
@@ -335,7 +347,7 @@ def prod():
     with pd.ExcelWriter('combined_tables.xlsx', engine='xlsxwriter') as writer:
         graphs1.to_excel(writer, sheet_name='Sheet1', startrow=0, index=False)
         graphs2.to_excel(writer, sheet_name='Sheet1', startrow=6, index=False)
-        graphs3.to_excel(writer, sheet_name='Sheet1', startrow=14, index=False)
+        graphs3.to_excel(writer, sheet_name='Sheet1', startrow=13, index=False)
         graphs4.to_excel(writer, sheet_name='Sheet1', startrow=23, index=False)
         graphs5.to_excel(writer, sheet_name='Sheet1', startrow=33, index=False)
         graphs6.to_excel(writer, sheet_name='Sheet1', startrow=41, index=False)
@@ -418,6 +430,8 @@ def prod():
         headers.append(13)
     elif(len(p2) == 6):
         headers.append(14)
+    elif(len(p2) == 7):
+        headers.append(15)
     if(len(p3) == 2):
         headers.append(19)
     elif(len(p3) == 3):
@@ -428,6 +442,8 @@ def prod():
         headers.append(22)
     elif(len(p3) == 6):
         headers.append(23)
+    elif(len(p3) == 7):
+        headers.append(24)
     if(len(p4) == 2):
         headers.append(28)
     elif(len(p4) == 3):
@@ -456,6 +472,8 @@ def prod():
         headers.append(59)
     elif(len(p8) == 6):
         headers.append(60)
+    elif(len(p8) == 7):
+        headers.append(61)
     headers.sort()
 
     pivots = pd.read_excel('pivot_table.xlsx').replace([np.nan, np.inf, -np.inf], '')
@@ -500,17 +518,21 @@ def prod():
     worksheet.set_column('A:Z', 16)
 
     # styling Graphs spreadsheet
-    headers = [3, 6, 6+len(graphs2)-3, 14, 14+len(graphs3)-3, 23, 23+len(graphs4)-3, 33, 33+len(graphs5)-3, 41, 41+len(graphs6)-3, 48, 51, 55, 59, 62, 66]
-    shaded = [2, 8, 16, 25, 35, 43, 50, 57, 64]
+    headers = [3, 6, 6+len(graphs2)-3, 13, 13+len(graphs3)-3, 23, 23+len(graphs4)-3, 33, 33+len(graphs5)-3, 41, 41+len(graphs6)-3, 48, 51, 55, 59, 62, 66]
+    shaded = [2, 8, 15, 25, 35, 43, 50, 57, 64]
     if(len(graphs3) >= 8):
-        shaded.append(18)
+        shaded.append(17)
     if(len(graphs4) >= 8):
         shaded.append(27)
-    not_shaded = [1, 7, 15, 17, 24, 26, 34, 42, 44, 49, 56, 63]
+    if(len(graphs3) >= 10):
+        shaded.append(19)
+    if(len(graphs4) >= 10):
+        shaded.append(29)
+    not_shaded = [1, 7, 14, 16, 24, 26, 34, 42, 44, 49, 56, 63]
     if(len(graphs2) >= 7):
         not_shaded.append(9)
     if(len(graphs3) >= 9):
-        not_shaded.append(19)
+        not_shaded.append(18)
     if(len(graphs4) >= 9):
         not_shaded.append(28)
     if(len(graphs5) >= 7):
