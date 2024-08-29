@@ -19,9 +19,6 @@ from webdriver_manager.chrome import ChromeDriverManager
 import time
 import warnings
 import json
-#from dotenv import load_dotenv
-
-#load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
@@ -155,7 +152,8 @@ def prod():
     junk.click()
     delete = driver.find_element(By.NAME, "DeleteClause")
     delete.click()
-    status = driver.find_element(By.XPATH, "//*[@id=\"TitleBox--_Search_Build_html------QWRkIENyaXRlcmlh---0\"]/div/div[5]/div[3]/div/button/div/div/div")
+    time.sleep(0.2)
+    status = driver.find_element(By.XPATH, "//*[@id=\"TitleBox--_Search_Build_html------QWRkIENyaXRlcmlh---0\"]/div/div[5]/div[3]/div/button")
     status.click()
     input_status = driver.find_element(By.XPATH, "//*[@id=\"TitleBox--_Search_Build_html------QWRkIENyaXRlcmlh---0\"]/div/div[5]/div[3]/div/div/div[1]/input")
     input_status.send_keys("closed")
