@@ -25,7 +25,7 @@ export default function Home() {
 
     async function handleDownload(report: string) {
         setState(1)
-        const response = await fetch('https://ride-ti-reporter-backend-r2tsfeja2q-nn.a.run.app/download', {
+        const response = await fetch('http://127.0.0.1:5000/download', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password, report }),
